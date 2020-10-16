@@ -1,7 +1,6 @@
 #!/bin/bash
 BASE_PATH=$(dirname $0)
-#rm -fr ./master/data/*
-#rm -fr ./slave/data/*
+
 echo "Waiting for mysql to get up"
 # Give 60 seconds for master and slave to come up
 sleep 10
@@ -58,16 +57,11 @@ echo
 echo MYSQL01_IP       : mysqlmaster
 echo MYSQL02_IP       : mysqlslave
 
-echo "Create grafana user"
+echo "Import mysql dumps from folder"
 echo "-------------------"
-#mysql --host mysqlmaster -uroot -p$MYSQL_MASTER_PASSWORD -AN -e "CREATE DATABASE grafana;"
 
-#mysql --host mysqlmaster -uroot -p$MYSQL_MASTER_PASSWORD -AN -e "GRANT USAGE ON grafana.* to grafana@'%' identified by 'grafana';"
-
-#mysql --host mysqlmaster -uroot -p$MYSQL_MASTER_PASSWORD -AN -e "GRANT ALL PRIVILEGES ON grafana.* to 'grafana'@'%' with grant option;"
-
-#mysql --host mysqlmaster -uroot -p$MYSQL_MASTER_PASSWORD -AN -e "flush privileges;"
-
-mysql --host mysqlmaster -uroot -p$MYSQL_MASTER_PASSWORD -AN -e "CREATE DATABASE toolstation;"
-
-mysql --host mysqlmaster -uroot -p$MYSQL_MASTER_PASSWORD toolstation < /tmp/toolstation_full_06_nodata.sql
+if [ -z "$(ls -A /tmp/sqldump)" ]; then
+    echo "No sql dumps in folder"
+else
+    for dump in `ls /tmp/sqldump/*.sql`; do mysql --host mysqlmaster -uroot -p$MYSQL_MASTER_PASSWORD < ${dump}; done
+fi

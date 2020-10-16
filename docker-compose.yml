@@ -32,7 +32,7 @@ services:
             - "MYSQL_PORT=3307"
         volumes:
             - ./mysql_connector.sh:/tmp/mysql_connector.sh
-            - ./toolstation_full_06_nodata.sql:/tmp/toolstation_full_06_nodata.sql
+            - ./build_env/sqldump:/tmp/sqldump:rw
         command: /bin/bash -x /tmp/mysql_connector.sh
 
     mysqlslave:
