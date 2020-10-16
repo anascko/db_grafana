@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 # db_grafana
-=======
-#db_grafana
->>>>>>> 266b774... Provide folder for sql dumps
 
 Run master-slave DB replication, with grafana
 
