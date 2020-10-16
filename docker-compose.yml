@@ -1,0 +1,64 @@
+version: '3'
+services:
+    grafana:
+        build: ./build_env/grafana
+        container_name: grafana
+        restart: always
+        depends_on:
+            - mysqlconfigure
+        ports:
+            - '3000:3000/tcp'
+        environment:
+            GF_DATABASE_TYPE: mysql
+            GF_DATABASE_HOST: mysqlmaster
+            GF_DATABASE_USER: grafana
+            GF_DATABASE_PASSWORD: grafana
+            GF_DATABASE_NAME: grafana
+#            GF_INSTALL_PLUGINS: percona-percona-app
+        volumes:
+            - ./grafana:/var/lib/grafana:rw
+
+    mysqlconfigure:
+        image: mysql:5.6
+        container_name: mysqlconfigure
+        depends_on:
+            - mysqlslave
+        environment:
+            - "MYSQL_SLAVE_PASSWORD=root"
+            - "MYSQL_MASTER_PASSWORD=root"
+            - "MYSQL_ROOT_PASSWORD=root"
+            - "MYSQL_REPLICATION_USER=repl"
+            - "MYSQL_REPLICATION_PASSWORD=repl"
+            - "MYSQL_PORT=3307"
+        volumes:
+            - ./mysql_connector.sh:/tmp/mysql_connector.sh
+            - ./toolstation_full_06_nodata.sql:/tmp/toolstation_full_06_nodata.sql
+        command: /bin/bash -x /tmp/mysql_connector.sh
+
+    mysqlslave:
+        image: mysql:5.6
+        container_name: mysqlslave
+        ports:
+            - '3307:3307/tcp'
+        volumes:
+            - ./build_env/mysql/slave.cnf:/etc/mysql/conf.d/my.cnf
+            - ./slave/data:/var/lib/mysql:rw
+        depends_on:
+            - mysqlmaster
+        environment:
+            - "MYSQL_ROOT_PASSWORD=root"
+
+    mysqlmaster:
+        image: mysql:5.6
+        container_name: mysqlmaster
+        ports:
+            - '3306:3306/tcp'
+        volumes:
+            - ./build_env/mysql/master.cnf:/etc/mysql/conf.d/my.cnf
+            - ./master/data:/var/lib/mysql:rw
+        environment:
+            MYSQL_DATABASE: grafana
+            MYSQL_USER: grafana
+            MYSQL_PASSWORD: grafana
+            MYSQL_ROOT_PASSWORD: root
+
